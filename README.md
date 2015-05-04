@@ -4,16 +4,15 @@ Juego del Gato
 
 ##Inicializar proyecto
 
-1. Descargar Node
-2. En la raiz del proyecto, ejecutar
+1. Descargar Node, y en la raiz del proyecto, ejecutar
 
 	npm install 
 
-3.Para iniciar servidor
+2.Para iniciar servidor
 	
 	node server.js
 
-4. En localhost:8080 se iniciará servidor.
+3.En localhost:8080 se iniciará servidor.
 
 
 ##Qué se hizo
