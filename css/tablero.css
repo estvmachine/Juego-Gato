@@ -1,0 +1,69 @@
+.cuadro{
+	height: 200px;
+	height: 200px;
+
+}
+
+.cuadroSupDer{
+	border-right: solid;
+	border-bottom: solid;
+}
+
+.cuadroSupCentro{
+	
+	border-right: solid;
+	border-left: solid;
+	border-bottom: solid;
+
+}
+
+.cuadroSupIzq{
+
+	border-left: solid;
+	border-bottom: solid;
+
+}
+
+.cuadroCentroDer{
+
+	border-top: solid;
+	border-right: solid;
+	border-bottom: solid;
+
+}
+
+.cuadroCentroCentro{
+
+	border: solid;
+
+}
+
+.cuadroCentroIzq{
+
+	border-top: solid;
+	border-left: solid;
+	border-bottom: solid;
+
+}
+
+.cuadroInfDer{
+
+	border-right: solid;
+	border-top: solid;
+
+}
+
+.cuadroInfCentro{
+
+	border-right: solid;
+	border-left: solid;
+	border-top: solid;
+
+}
+
+.cuadroInfIzq{
+
+	border-left: solid;
+	border-top: solid;
+
+}

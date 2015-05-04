@@ -1,0 +1,10 @@
+{
+  "name": "Juego del Gato",
+  "description": "Gato del Lince",
+  "version": "0.0.1",
+  "author": "Stevmachine",
+  "dependencies": {
+    "express": "~4.4.1"
+
+    }
+}
