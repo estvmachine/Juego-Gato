@@ -4,6 +4,7 @@ var express = require('express')
   , server = http.createServer(app);
 
 var port = 8080;
+var existeganador = false;
 
 server.listen(port);
 
@@ -46,53 +47,110 @@ var jugadas= [
 *jugada: Puede ser X ó O, pero como string
 */
 function analizarTablero(row, col,jugada){
-	board[row-1][col-1] =! board[row-1][col-1];   //si ya hay jugada no puedo poner otra
-	return board[row-1][col-1];
+	if (board [row-1][col-1] === false){ 
+		//board[row-1][col-1]  =  true; // ! board[row-1][col-1];   
+		//return board[row-1][col-1];
+		return "Posicion recien llena";
+	}
+	else 
+		return "Posicion ya ocupada";
+	
 }
 
 function colocarJugadas(row, col, jugada){
-	if(jugada=== 'Equis')
-		jugadas[row-1][col-1]= 'X';
-	else
-		jugadas[row-1][col-1]= 'O';
+	if (board [row-1][col-1] === false){
+		//Ocupo posicion del tablero
+		board[row-1][col-1]  =  true;
 
+		if(jugada === 'Equis'){
+			jugadas[row-1][col-1]= 'X';
+			return "Turno de Jugador O";
+		}
+		else{
+			jugadas[row-1][col-1]= 'O';
+			return "Turno Jugador X"
+		}
+	}
+	else 
+		return "Posicion invalida"
 }
+
 
 function comprobarSiHayGanador(){
 
-	if(      (jugadas[0][0]=== 'X' || jugadas[0][0]=== 'O')
-			&&    (jugadas[1][0]=== 'X' || jugadas[1][0]=== 'O') 
-				&&    (jugadas[2][0]=== 'X' || jugadas[2][0]=== 'O')    
+	if(      ((jugadas[0][0]=== 'X' )	&&    (jugadas[1][0]=== 'X') 	&&    (jugadas[2][0]=== 'X'))
+		||   ((jugadas[0][0]=== 'X' )	&&    (jugadas[0][1]=== 'X') 	&&    (jugadas[0][2]=== 'X'))
+		||   ((jugadas[0][0]=== 'X' )	&&    (jugadas[1][1]=== 'X') 	&&    (jugadas[2][2]=== 'X'))
+		||   ((jugadas[1][0]=== 'X' )	&&    (jugadas[1][1]=== 'X') 	&&    (jugadas[1][2]=== 'X'))
+		||   ((jugadas[2][0]=== 'X' )	&&    (jugadas[2][1]=== 'X') 	&&    (jugadas[2][2]=== 'X'))
+		||   ((jugadas[0][1]=== 'X' )	&&    (jugadas[1][1]=== 'X') 	&&    (jugadas[2][1]=== 'X'))
+		||   ((jugadas[0][2]=== 'X' )	&&    (jugadas[1][2]=== 'X') 	&&    (jugadas[2][2]=== 'X'))
+		||   ((jugadas[0][2]=== 'X' )	&&    (jugadas[1][1]=== 'X') 	&&    (jugadas[2][0]=== 'X'))
 	  ){
+		existeganador = true;
+		return "Gano Jugador X";
+	}
 
-		return true;
+	if(      ((jugadas[0][0]=== 'O' )	&&    (jugadas[1][0]=== 'O') 	&&    (jugadas[2][0]=== 'O'))
+		||   ((jugadas[0][0]=== 'O' )	&&    (jugadas[0][1]=== 'O') 	&&    (jugadas[0][2]=== 'O'))
+		||   ((jugadas[0][0]=== 'O' )	&&    (jugadas[1][1]=== 'O') 	&&    (jugadas[2][2]=== 'O'))
+		||   ((jugadas[1][0]=== 'O' )	&&    (jugadas[1][1]=== 'O') 	&&    (jugadas[1][2]=== 'O'))
+		||   ((jugadas[2][0]=== 'O' )	&&    (jugadas[2][1]=== 'O') 	&&    (jugadas[2][2]=== 'O'))
+		||   ((jugadas[0][1]=== 'O' )	&&    (jugadas[1][1]=== 'O') 	&&    (jugadas[2][1]=== 'O'))
+		||   ((jugadas[0][2]=== 'O' )	&&    (jugadas[1][2]=== 'O') 	&&    (jugadas[2][2]=== 'O'))
+		||   ((jugadas[0][2]=== 'O' )	&&    (jugadas[1][1]=== 'O') 	&&    (jugadas[2][0]=== 'O'))
+	  ){
+		existeganador = true;
+		return "Gano Jugador O";
 
 	}
-	else 
-		return false;                                             
 
+	if(    (board[0][0]=== true )	&&    (board[0][1]=== true) 	&&    (board[0][2]=== true) &&
+		   (board[1][0]=== true )	&&    (board[1][1]=== true) 	&&    (board[1][2]=== true) &&
+		   (board[2][0]=== true )	&&    (board[2][1]=== true) 	&&    (board[2][2]=== true)
+		
+	  ){
 
+		return "No hay Ganadores";
+
+	}
+    else
+    	return "Sigan Jugando"                              
 }
 
 app.get('/analizarTablero/:row/:col/:jugador', function (req, res) {
+	if (existeganador === true)
+		res.json('Ya hay ganador felicidades');
+	else {
+		//Resultado de colocar una jugada en tablero
+		var resultado = analizarTablero(req.params.row,
+										req.params.col,
+										req.params.jugador);
 
-	//Resultado de colocar una jugada en tablero
-	var resultado = analizarTablero(req.params.row,
-									req.params.col,
-									req.params.jugador);
+		//Funcion que llena tabla de jugadas
+		var comprobacionjugadas = colocarJugadas(req.params.row,
+					   req.params.col,
+					   req.params.jugador);
 
-	//Funcion que llena tabla de jugadas
-	colocarJugadas(req.params.row,
-				   req.params.col,
-				   req.params.jugador);
-	
-	//Compruebo ganador
-	var hayGanador= comprobarSiHayGanador();
+		//Compruebo ganador
+		var hayGanador= comprobarSiHayGanador();
+		console.log(jugadas);
+		console.log(board);
 
-	if(hayGanador)
-		res.json('Hay un ganador');
-	else
-		res.send(resultado);  //La respuesta a si ya hay una jugada en esa parte del tablero
+		if (comprobacionjugadas === "Posicion invalida"){
+			res.json('Posicion invalida');
+			}
+		else {
 
-
+			if(hayGanador === "Gano Jugador X")
+			res.json('Gano Jugador X');
+			if(hayGanador === "Gano Jugador O")
+			res.json('Gano Jugador O');
+			if(hayGanador === "No hay Ganadores")
+			res.json('No hay Ganadores');
+			if(hayGanador === "Sigan Jugando")
+			res.json('Sigan Jugando');
+		}
+	}
 });
+

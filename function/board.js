@@ -24,11 +24,14 @@ function send(fila, col, jugador){
         
         document.getElementById("txt-resultado").innerHTML = resultData;
         //console.log(resultData);
-        if(jugador=== 'Equis')
-            $('#row'+fila + '-col'+col).html('<img style="height: 160px;width:160px; "src="../img/ink-x.png" />');
-        else
-            $('#row'+fila + '-col'+col).html('<img style="height: 160px;width:160px; "src="../img/ink-circle.png" />');
+    
+        if (resultData !== 'Posicion invalida' && resultData !== 'Ya hay ganador felicidades'){
+            if(jugador === 'Equis')
+                $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-x.png" />');
+            else
 
+                $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-circle.png" />');
+        }
     },
     error: function(xhr, status, error){
         console.log(xhr);

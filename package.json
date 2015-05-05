@@ -1,0 +1,10 @@
+{
+  "name": "Juego del Gato",
+  "description": "Gato",
+  "version": "0.0.1",
+  "author": "Felipe Valenzuela",
+  "dependencies": {
+  "express": "~4.4.1"
+
+    }
+}
