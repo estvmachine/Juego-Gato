@@ -27,14 +27,72 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/view/index.html');
 });
 
-var board = [[false, false, false],[false, false, false],[false, false, false]];
+var board = [   
+				[false, false, false],
+				[false, false, false],
+				[false, false, false]
+			];
 
-function analizarTablero(row, col){
-	board[row-1][col-1] =! board[row-1][col-1];
+var jugadas= [   
+				['', '', ''],
+				['', '', ''],
+				['', '', '']
+			];
+
+
+/*
+*row: Fila
+*col:Columna
+*jugada: Puede ser X ó O, pero como string
+*/
+function analizarTablero(row, col,jugada){
+	board[row-1][col-1] =! board[row-1][col-1];   //si ya hay jugada no puedo poner otra
 	return board[row-1][col-1];
 }
 
-app.get('/analizarTablero/:row/:col', function (req, res) {
-	var resultado = analizarTablero(req.params.row,req.params.col);
-	res.send(resultado);
+function colocarJugadas(row, col, jugada){
+	if(jugada=== 'Equis')
+		jugadas[row-1][col-1]= 'X';
+	else
+		jugadas[row-1][col-1]= 'O';
+
+}
+
+function comprobarSiHayGanador(){
+
+	if(      (jugadas[0][0]=== 'X' || jugadas[0][0]=== 'O')
+			&&    (jugadas[1][0]=== 'X' || jugadas[1][0]=== 'O') 
+				&&    (jugadas[2][0]=== 'X' || jugadas[2][0]=== 'O')    
+	  ){
+
+		return true;
+
+	}
+	else 
+		return false;                                             
+
+
+}
+
+app.get('/analizarTablero/:row/:col/:jugador', function (req, res) {
+
+	//Resultado de colocar una jugada en tablero
+	var resultado = analizarTablero(req.params.row,
+									req.params.col,
+									req.params.jugador);
+
+	//Funcion que llena tabla de jugadas
+	colocarJugadas(req.params.row,
+				   req.params.col,
+				   req.params.jugador);
+	
+	//Compruebo ganador
+	var hayGanador= comprobarSiHayGanador();
+
+	if(hayGanador)
+		res.json('Hay un ganador');
+	else
+		res.send(resultado);  //La respuesta a si ya hay una jugada en esa parte del tablero
+
+
 });
