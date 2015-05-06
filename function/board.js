@@ -1,12 +1,35 @@
 //Se ejecuta primero
+var socket = io();
+
 $(document).ready(function(){  
+
     $('#btn-send').click(function (event) {
         var fila = $("#fila").val();
         var col = $("#col").val();
         var jugador= $("#jugador").val();
-        console.log('Aprete el boton', fila, col, jugador);
-        send(fila, col, jugador)
+        send(fila, col, jugador)   //Ejecuta este llamado a GET /analizarTablero/:row/:col/:jugador en SERVIDOR
+        socket.emit('jugada gato', fila+'-'+col+'-'+jugador);  //Activando un evento a traves de SOCKET llama 'jugada dato'
     });
+    
+     socket.on('jugo x', function(msg){
+          //Dibujo un circulo en la posicion indicada: hay que descifrar msg-> fila y columna
+         var partes= msg.split('-');
+         var fila = partes[0];
+         var col= partes[1];
+
+          $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-x.png" />');
+      
+      });
+
+
+      socket.on('jugo o', function(msg){ 
+          //Dibujo un circulo en la posicion indicada: hay que descifrar msg-> fila y columna
+         var partes= msg.split('-');
+         var fila = partes[0];
+         var col= partes[1];
+          $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-circle.png" />');
+      })
+
 });
 
 

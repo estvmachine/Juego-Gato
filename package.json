@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "author": "Felipe Valenzuela",
   "dependencies": {
-  "express": "~4.4.1"
+  "express": "~4.4.1",
+  "socket.io": "1.2.0"
 
     }
 }

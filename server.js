@@ -1,7 +1,8 @@
 var express = require('express')
   , app = express()
   , http = require('http')
-  , server = http.createServer(app);
+  , server = http.createServer(app)
+  , io = require('socket.io')(server);
 
 var port = 8080;
 var existeganador = false;
@@ -152,5 +153,24 @@ app.get('/analizarTablero/:row/:col/:jugador', function (req, res) {
 			res.json('Sigan Jugando');
 		}
 	}
+});
+
+
+io.on('connection', function(socket){
+  socket.on('jugada gato', function(msg){ // Recibo msg= fila-col-jugador desde el cliente
+
+    var partes= msg.split('-');  //partes= [fila, col, jugador]
+    var fila= partes[0];
+    var col= partes[1];
+    var jugador= partes[2];
+
+  	if(jugador==='Equis')
+    	io.emit('jugo x', fila + '-'+ col );  //Aca estoy enviando fila-col
+    else
+    	io.emit('jugo o', fila + '-'+ col );   //Aca estoy enviando fila-col
+  });
+
+  //Poner mas reacciones a eventos socket
+
 });
 
