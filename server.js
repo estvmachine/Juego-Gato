@@ -119,7 +119,7 @@ function comprobarSiHayGanador(){
     	return "Sigan Jugando"                              
 }
 
-app.get('/analizarTablero/:row/:col/:jugador', function (req, res) {
+app.get('/colocarJugada/:row/:col/:jugador', function (req, res) {
 	if (existeganador === true)
 		res.json('Ya hay ganador felicidades');
 	else {

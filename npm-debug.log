@@ -5,7 +5,7 @@
 1 verbose cli   'socket.io' ]
 2 info using npm@1.4.28
 3 info using node@v0.10.35
-4 error Error: Invalid name: "Juego del Gato"
+4 error Error: Invalid name: "Juego Gato"
 4 error     at ensureValidName (c:\Program Files\nodejs\node_modules\npm\node_modules\read-package-json\node_modules\normalize-package-data\lib\fixer.js:315:15)
 4 error     at Object.module.exports.fixNameField (c:\Program Files\nodejs\node_modules\npm\node_modules\read-package-json\node_modules\normalize-package-data\lib\fixer.js:204:5)
 4 error     at c:\Program Files\nodejs\node_modules\npm\node_modules\read-package-json\node_modules\normalize-package-data\lib\normalize.js:30:38

@@ -39,8 +39,8 @@ $(document).ready(function(){
 //Esta funcion es para enviar mensajes a servidor
 function send(fila, col, jugador){
 
-    //Esto espera servidor localhost:8080/analizarTablero/:fila/:col por metodo GET
-    var urlTweet = 'http://localhost:8080/analizarTablero/' + fila + '/' + col + '/' + jugador;  
+    //Esto espera servidor localhost:8080/colocarJugada/:fila/:col por metodo GET
+    var urlTweet = 'http://localhost:8080/colocarJugada/' + fila + '/' + col + '/' + jugador;  
 
     $.ajax({ url: urlTweet, type: 'GET', dataType: "json", 
     success: function(resultData) {
