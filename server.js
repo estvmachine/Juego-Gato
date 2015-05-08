@@ -141,12 +141,8 @@ app.get('/colocarJugada/:row/:col/:jugador', function (req, res) {
 			}
 
 		else {
-			console.log(hayGanador);
-			//Emito un socket para dibujar jugada en Tablero
-			if(jugador==='Equis')
-	    		io.emit('jugada activa', fila + '-'+ col + '-'+jugador);  //Aca estoy enviando fila-col
-	    	else
-	    		io.emit('jugada activa', fila + '-'+ col + '-'+jugador);   //Aca estoy enviando fila-col
+			
+			io.emit('jugada activa', fila + '-'+ col + '-'+jugador);  
 	 		 
 	    	//El mensaje se envia a cada jugador
 	    	if(hayGanador === "No hay Ganadores"){

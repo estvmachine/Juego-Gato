@@ -7,6 +7,12 @@ $(document).ready(function(){
         var fila = $("#fila").val();
         var col = $("#col").val();
         var jugador= $("#jugador").val();
+
+        if(jugador==='Equis')
+          jugador= 'X';
+        else
+          jugador='O';
+
         send(fila, col, jugador)   //Ejecuta este llamado a GET /analizarTablero/:row/:col/:jugador en SERVIDOR
        
     });
