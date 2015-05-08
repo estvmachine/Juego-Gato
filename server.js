@@ -60,7 +60,7 @@ function colocarJugadas(row, col, jugada){
 		//Ocupo posicion del tablero
 		board[row-1][col-1]  =  true;
 
-		if(jugada === 'Equis'){
+		if(jugada === 'X'){
 			jugadas[row-1][col-1]= 'X';
 			return "Turno de Jugador O";
 		}
