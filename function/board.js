@@ -8,7 +8,7 @@ $(document).ready(function(){
         var col = $("#col").val();
         var jugador= $("#jugador").val();
         send(fila, col, jugador)   //Ejecuta este llamado a GET /analizarTablero/:row/:col/:jugador en SERVIDOR
-        socket.emit('jugada gato', fila+'-'+col+'-'+jugador);  //Activando un evento a traves de SOCKET llama 'jugada dato'
+       
     });
     
      socket.on('jugo x', function(msg){
@@ -39,22 +39,14 @@ $(document).ready(function(){
 //Esta funcion es para enviar mensajes a servidor
 function send(fila, col, jugador){
 
-    //Esto espera servidor localhost:8080/colocarJugada/:fila/:col por metodo GET
     var urlTweet = 'http://localhost:8080/colocarJugada/' + fila + '/' + col + '/' + jugador;  
 
     $.ajax({ url: urlTweet, type: 'GET', dataType: "json", 
     success: function(resultData) {
-        
+       
+        //Escribo mensaje en la pantalla 
         document.getElementById("txt-resultado").innerHTML = resultData;
-        //console.log(resultData);
-    
-        if (resultData !== 'Posicion invalida' && resultData !== 'Ya hay ganador felicidades'){
-            if(jugador === 'Equis')
-                $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-x.png" />');
-            else
-
-                $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-circle.png" />');
-        }
+   
     },
     error: function(xhr, status, error){
         console.log(xhr);
