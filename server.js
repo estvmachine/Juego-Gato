@@ -48,11 +48,8 @@ var jugadas= [
 *jugada: Puede ser X ó O, pero como string
 */
 function analizarTablero(row, col,jugada){
-	if (board [row-1][col-1] === false){ 
-		//board[row-1][col-1]  =  true; // ! board[row-1][col-1];   
-		//return board[row-1][col-1];
+	if (board [row-1][col-1] === false) 
 		return "Posicion recien llena";
-	}
 	else 
 		return "Posicion ya ocupada";
 	
@@ -128,15 +125,10 @@ app.get('/colocarJugada/:row/:col/:jugador', function (req, res) {
 			col= req.params.col,
 			jugador= req.params.jugador;
 
-		var resultado = analizarTablero(fila,
-									    col,
-									    jugador);
-
 		//Funcion que llena tabla de jugadas
 		var comprobacionjugadas = colocarJugadas(fila,
 									    col,
 									    jugador);
-
 
 		//Compruebo ganador
 		var hayGanador= comprobarSiHayGanador();
@@ -147,23 +139,37 @@ app.get('/colocarJugada/:row/:col/:jugador', function (req, res) {
 		if (comprobacionjugadas === "Posicion invalida"){
 			res.json('Posicion invalida');
 			}
-		else {
 
+		else {
+			console.log(hayGanador);
 			//Emito un socket para dibujar jugada en Tablero
 			if(jugador==='Equis')
-	    		io.emit('jugo x', fila + '-'+ col );  //Aca estoy enviando fila-col
+	    		io.emit('jugada activa', fila + '-'+ col + '-'+jugador);  //Aca estoy enviando fila-col
 	    	else
-	    		io.emit('jugo o', fila + '-'+ col );   //Aca estoy enviando fila-col
+	    		io.emit('jugada activa', fila + '-'+ col + '-'+jugador);   //Aca estoy enviando fila-col
 	 		 
 	    	//El mensaje se envia a cada jugador
-			if(hayGanador === "Gano Jugador X")
-				res.json('Gano Jugador X');
-			if(hayGanador === "Gano Jugador O")
-				res.json('Gano Jugador O');
-			if(hayGanador === "No hay Ganadores")
+	    	if(hayGanador === "No hay Ganadores"){
 				res.json('No hay Ganadores');
-			if(hayGanador === "Sigan Jugando")
+				io.emit('No hay Ganadores');
+			}
+
+			else if(hayGanador === "Sigan Jugando"){
 				res.json('Sigan Jugando');
+			}
+
+			else if(hayGanador === "Gano Jugador X"){
+				res.json('Gano Jugador X');
+				io.emit('Ganador', 'X');
+			}
+			else if(hayGanador === "Gano Jugador O"){
+				res.json('Gano Jugador O');
+				io.emit('Ganador','O');
+			}
+
+
+		
+
 		}
 	}
 });

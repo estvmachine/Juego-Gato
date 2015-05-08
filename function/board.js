@@ -11,24 +11,37 @@ $(document).ready(function(){
        
     });
     
-     socket.on('jugo x', function(msg){
+     socket.on('jugada activa', function(msg){
           //Dibujo un circulo en la posicion indicada: hay que descifrar msg-> fila y columna
          var partes= msg.split('-');
          var fila = partes[0];
          var col= partes[1];
+         var jugador= partes[2];
 
-          $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-x.png" />');
+         if(jugador==='X')
+            $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-x.png" />');
+         else
+            $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-circle.png" />');
       
-      });
+    });
+
+    socket.on('Ganador', function(msg){
+         var jugador= msg;
+
+         if(jugador==='X')
+            alert('Gano X');
+         else
+            alert('Gano O');
+      
+    });
+
+    socket.on(' No hay Ganadores', function(){
+       
+        alert(' No hay Ganadores');
+     });
 
 
-      socket.on('jugo o', function(msg){ 
-          //Dibujo un circulo en la posicion indicada: hay que descifrar msg-> fila y columna
-         var partes= msg.split('-');
-         var fila = partes[0];
-         var col= partes[1];
-          $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-circle.png" />');
-      })
+
 
 });
 
