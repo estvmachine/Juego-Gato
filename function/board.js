@@ -49,18 +49,25 @@ $(document).ready(function(){
       
     }); 
 
-    socket.on('Sigan Jugando', function(msg){
-        document.getElementById("txt-resultado").innerHTML = 'Sigan jugando';
+    socket.on('Designar', function(msg){
+        document.getElementById("txt-resultado").innerHTML = msg.texto;
+
+        if(msg.jugador==='X')
+            $('#jugador').val('Equis');
+        else
+            $('#jugador').val('Circulo');
+
     });
 
-    socket.on('No hay Ganadores',function(){
-        document.getElementById("txt-resultado").innerHTML = 'Se acabo el juego, no hay ganadores';
+    socket.on('Msje_Broadcast', function(msg){
+        document.getElementById("txt-resultado").innerHTML = msg.texto;
     });
 
-    socket.on('Posicion invalida', function(){
-        document.getElementById("txt-resultado").innerHTML = 'Posicion invalida, escoga otra';
+    socket.on('Msje_Personal', function(msg){
+        document.getElementById("txt-resultado").innerHTML = msg.texto;
        
     });
+
 
 });
 

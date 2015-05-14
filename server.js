@@ -41,6 +41,8 @@ var jugadas= [
 				['', '', '']
 			];
 
+var jugadores={X: '', O: ''};
+
 
 /*
 *row: Fila
@@ -120,64 +122,80 @@ function comprobarSiHayGanador(){
 
 io.on('connection', function(socket){
 
-	socket.on('jugada', function(msg){
-
-		
-
-		if (existeganador === true)
-			res.json('Ya hay ganador felicidades');
-		else {
-
-			//Resultado de colocar una jugada en tablero
-			var fila = msg.fila,
-	        	col= msg.col,
-	        	jugador= msg.jugador;
-
+	if( jugadores.X === ''){
+		jugadores.X= socket.id;
+		socket.emit('Designar', {texto: 'Eres el jugador X', jugador: 'X'});
+	}
+	else if(jugadores.O === ''){
+		jugadores.O= socket.id;
+		socket.emit('Designar', {texto: 'Eres el jugador O', jugador: 'O'});
+	}
+	else{
+		socket.emit( 'Msje_Personal', { texto: 'Sala llena' });
+	}
 
 
-			//Funcion que llena tabla de jugadas
-			var comprobacionjugadas = colocarJugadas(fila,
-										    col,
-										    jugador);
+	if(jugadores.X === socket.id ||  jugadores.O === socket.id ){
 
-			//Compruebo ganador
-			var hayGanador= comprobarSiHayGanador();
-			console.log(jugadas);
-			console.log(board);
+		socket.on('jugada', function(msg){
 
-
-			if (comprobacionjugadas === "Posicion invalida"){
-					socket.emit('Posicion invalida');
-				}
-
+			if (existeganador === true)
+				res.json('Ya hay ganador felicidades');
 			else {
+
+				//Resultado de colocar una jugada en tablero
+				var fila = msg.fila,
+		        	col= msg.col,
+		        	jugador= msg.jugador;
+
+
+
+				//Funcion que llena tabla de jugadas
+				var comprobacionjugadas = colocarJugadas(fila,
+											    col,
+											    jugador);
+
+				//Compruebo ganador
+				var hayGanador= comprobarSiHayGanador();
+				console.log(jugadas);
+				console.log(board);
+
+
+				if (comprobacionjugadas === "Posicion invalida"){
+						socket.emit( 'Msje_Personal', { texto: 'Posicion invalida'});
+					}
+
+				else {
+					
+					io.emit('jugada activa', {fila: fila,
+				                               col : col,
+				                               jugador:jugador});  
+			 		 
+			    	//El mensaje se envia a cada jugador
+			    	if(hayGanador === "No hay Ganadores"){
+						io.emit('Msje_Broadcast', { texto: 'No hay Ganadores'});
+					}
+
+					else if(hayGanador === "Sigan Jugando"){
+						io.emit('Msje_Broadcast', { texto: 'Sigan Jugando'});
+					}
+
+					else if(hayGanador === "Gano Jugador X"){
+						io.emit('Ganador', 'X');
+					}
+					else if(hayGanador === "Gano Jugador O"){
+						io.emit('Ganador','O');
+					}
+
+
 				
-				io.emit('jugada activa', {fila: fila,
-			                               col : col,
-			                               jugador:jugador});  
-		 		 
-		    	//El mensaje se envia a cada jugador
-		    	if(hayGanador === "No hay Ganadores"){
-					io.emit('No hay Ganadores');
+
 				}
-
-				else if(hayGanador === "Sigan Jugando"){
-					io.emit('Sigan Jugando');
-				}
-
-				else if(hayGanador === "Gano Jugador X"){
-					io.emit('Ganador', 'X');
-				}
-				else if(hayGanador === "Gano Jugador O"){
-					io.emit('Ganador','O');
-				}
-
-
-			
-
 			}
-		}
-	});
+		});
+	}
+
+	
 });
 
 
