@@ -56,6 +56,8 @@ function analizarTablero(row, col,jugada){
 }
 
 function colocarJugadas(row, col, jugada){
+
+	console.log(jugada);
 	if (board [row-1][col-1] === false){
 		//Ocupo posicion del tablero
 		board[row-1][col-1]  =  true;
@@ -116,58 +118,66 @@ function comprobarSiHayGanador(){
     	return "Sigan Jugando"                              
 }
 
-app.get('/colocarJugada/:row/:col/:jugador', function (req, res) {
-	if (existeganador === true)
-		res.json('Ya hay ganador felicidades');
-	else {
-		//Resultado de colocar una jugada en tablero
-		var fila= req.params.row,
-			col= req.params.col,
-			jugador= req.params.jugador;
+io.on('connection', function(socket){
 
-		//Funcion que llena tabla de jugadas
-		var comprobacionjugadas = colocarJugadas(fila,
-									    col,
-									    jugador);
-
-		//Compruebo ganador
-		var hayGanador= comprobarSiHayGanador();
-		console.log(jugadas);
-		console.log(board);
-
-
-		if (comprobacionjugadas === "Posicion invalida"){
-			res.json('Posicion invalida');
-			}
-
-		else {
-			
-			io.emit('jugada activa', fila + '-'+ col + '-'+jugador);  
-	 		 
-	    	//El mensaje se envia a cada jugador
-	    	if(hayGanador === "No hay Ganadores"){
-				res.json('No hay Ganadores');
-				io.emit('No hay Ganadores');
-			}
-
-			else if(hayGanador === "Sigan Jugando"){
-				res.json('Sigan Jugando');
-			}
-
-			else if(hayGanador === "Gano Jugador X"){
-				res.json('Gano Jugador X');
-				io.emit('Ganador', 'X');
-			}
-			else if(hayGanador === "Gano Jugador O"){
-				res.json('Gano Jugador O');
-				io.emit('Ganador','O');
-			}
-
+	socket.on('jugada', function(msg){
 
 		
 
+		if (existeganador === true)
+			res.json('Ya hay ganador felicidades');
+		else {
+
+			//Resultado de colocar una jugada en tablero
+			var fila = msg.fila,
+	        	col= msg.col,
+	        	jugador= msg.jugador;
+
+
+
+			//Funcion que llena tabla de jugadas
+			var comprobacionjugadas = colocarJugadas(fila,
+										    col,
+										    jugador);
+
+			//Compruebo ganador
+			var hayGanador= comprobarSiHayGanador();
+			console.log(jugadas);
+			console.log(board);
+
+
+			if (comprobacionjugadas === "Posicion invalida"){
+					socket.emit('Posicion invalida');
+				}
+
+			else {
+				
+				io.emit('jugada activa', {fila: fila,
+			                               col : col,
+			                               jugador:jugador});  
+		 		 
+		    	//El mensaje se envia a cada jugador
+		    	if(hayGanador === "No hay Ganadores"){
+					io.emit('No hay Ganadores');
+				}
+
+				else if(hayGanador === "Sigan Jugando"){
+					io.emit('Sigan Jugando');
+				}
+
+				else if(hayGanador === "Gano Jugador X"){
+					io.emit('Ganador', 'X');
+				}
+				else if(hayGanador === "Gano Jugador O"){
+					io.emit('Ganador','O');
+				}
+
+
+			
+
+			}
 		}
-	}
+	});
 });
 
 

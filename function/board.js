@@ -8,21 +8,24 @@ $(document).ready(function(){
         var col = $("#col").val();
         var jugador= $("#jugador").val();
 
-        if(jugador==='Equis')
-          jugador= 'X';
-        else
-          jugador='O';
+       
 
-        send(fila, col, jugador)   //Ejecuta este llamado a GET /analizarTablero/:row/:col/:jugador en SERVIDOR
+        if(jugador==='Equis')
+            jugador= 'X';
+        else
+            jugador='O';
+        
+        socket.emit('jugada', {fila: fila,
+                               col : col,
+                               jugador:jugador} );
        
     });
     
      socket.on('jugada activa', function(msg){
           //Dibujo un circulo en la posicion indicada: hay que descifrar msg-> fila y columna
-         var partes= msg.split('-');
-         var fila = partes[0];
-         var col= partes[1];
-         var jugador= partes[2];
+         var fila = msg.fila,
+             col= msg.col,
+             jugador= msg.jugador;
 
          if(jugador==='X')
             $('#row'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-x.png" />');
@@ -31,23 +34,33 @@ $(document).ready(function(){
       
     });
 
+
     socket.on('Ganador', function(msg){
          var jugador= msg;
 
-         if(jugador==='X')
+         if(jugador==='X'){
+            document.getElementById("txt-resultado").innerHTML = 'Gano jugador X';
             alert('Gano X');
-         else
+         }
+         else{
+            document.getElementById("txt-resultado").innerHTML = 'Gano jugador O';
             alert('Gano O');
+         }
       
+    }); 
+
+    socket.on('Sigan Jugando', function(msg){
+        document.getElementById("txt-resultado").innerHTML = 'Sigan jugando';
     });
 
-    socket.on(' No hay Ganadores', function(){
+    socket.on('No hay Ganadores',function(){
+        document.getElementById("txt-resultado").innerHTML = 'Se acabo el juego, no hay ganadores';
+    });
+
+    socket.on('Posicion invalida', function(){
+        document.getElementById("txt-resultado").innerHTML = 'Posicion invalida, escoga otra';
        
-        alert(' No hay Ganadores');
-     });
-
-
-
+    });
 
 });
 
