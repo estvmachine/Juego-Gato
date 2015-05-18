@@ -42,8 +42,10 @@ var jugadas= [
 			];
 
 var jugadores={X: '', O: ''};
-
 var jugadaAnterior='';
+
+var usernames = {};
+var rooms = ['Lobby'];
 
 
 /*
@@ -122,87 +124,129 @@ function comprobarSiHayGanador(){
     	return "Sigan Jugando"
 }
 
+
 io.on('connection', function(socket){
+  /*************************************************************************/
 
-	//Asignacion de jugadores
-	if( jugadores.X === ''){
-		jugadores.X= socket.id;
-		socket.emit('Designar', {texto: 'Eres el jugador X', jugador: 'X'});
-	}
-	else if(jugadores.O === ''){
-		jugadores.O= socket.id;
-		socket.emit('Designar', {texto: 'Eres el jugador O', jugador: 'O'});
-	}
-	else{
-		socket.emit( 'Msje_Personal', { texto: 'Sala llena' });
-	}
+  socket.on('agregarUsuario', function(username) {
+        socket.username = username;
+        socket.room = 'Lobby';
+        usernames[username] = username;
+        socket.join('Lobby');
+        socket.emit('Msje_Personal', 'SERVER', 'te haces conectado al Lobby');
+        socket.broadcast.to('Lobby').emit('msje_sala', 'SERVER', username + ' se ha conectado a esta sala');
+        socket.emit('actualizarSalas', rooms, 'Lobby');
+    });
 
-	//Jugada de los jugadores registrados
-	if(jugadores.X === socket.id ||  jugadores.O === socket.id ){
+    socket.on('crearSala', function(room) {
+        rooms.push(room);
+        socket.emit('actualizarSalas', rooms, socket.room);
+    });
 
-		socket.on('jugada', function(msg){
+    socket.on('jugada', function(data) {
+        io.sockets["in"](socket.room).emit('Msje_Personal', socket.username, data);
 
-			if (existeganador === true)
-					socket.emit('Msje_Personal', {texto:'Ya hay ganador felicidades'});
-			else {
+        /*
+        		socket.on('jugada', function(msg){
 
-				//Resultado de colocar una jugada en tablero
-				var fila = msg.fila,
-		        	col= msg.col,
-		        	jugador= msg.jugador;
+        			if (existeganador === true)
+        					socket.emit('Msje_Personal', {texto:'Ya hay ganador felicidades'});
+        			else {
 
-		        console.log(board[fila-1][col-1]);
+        				//Resultado de colocar una jugada en tablero
+        				var fila = msg.fila,
+        		        	col= msg.col,
+        		        	jugador= msg.jugador;
 
-		        if(board[fila-1][col-1]=== true ){
-		        	socket.emit( 'Msje_Personal', { texto: 'Posicion invalida'});
-		        }
+        		        console.log(board[fila-1][col-1]);
 
-		        else if(jugadaAnterior=== jugador){
+        		        if(board[fila-1][col-1]=== true ){
+        		        	socket.emit( 'Msje_Personal', { texto: 'Posicion invalida'});
+        		        }
 
-		        	socket.emit('Msje_Personal', {texto:'Espera tu turno'});
-		        }
+        		        else if(jugadaAnterior=== jugador){
 
-				else{
-		        	//Evaluo jugadaAnterior con la jugada actual
-		        	jugadaAnterior= jugador;
+        		        	socket.emit('Msje_Personal', {texto:'Espera tu turno'});
+        		        }
 
-		        	//Funcion que llena tabla de jugadas
-					var comprobacionjugadas = colocarJugadas(fila,
-												    col,
-												    jugador);
+        				else{
+        		        	//Evaluo jugadaAnterior con la jugada actual
+        		        	jugadaAnterior= jugador;
 
-					//Compruebo ganador
-					var hayGanador= comprobarSiHayGanador();
-					console.log(jugadas);
-					console.log(board);
+        		        	//Funcion que llena tabla de jugadas
+        					var comprobacionjugadas = colocarJugadas(fila,
+        												    col,
+        												    jugador);
 
-
-					io.emit('jugada activa', {     tablero: jugadas,
-                                         fila: fila,
-					                               col : col,
-					                               jugador:jugador});
-
-				    //El mensaje se envia a cada jugador
-				    if(hayGanador === "No hay Ganadores"){
-						io.emit('Msje_Broadcast', { texto: 'No hay Ganadores'});
-					}
-
-					else if(hayGanador === "Sigan Jugando"){
-						io.emit('Msje_Broadcast', { texto: 'Sigan Jugando'});
-					}
-
-					else if(hayGanador === "Gano Jugador X"){
-						io.emit('Ganador', 'X');
-					}
-					else if(hayGanador === "Gano Jugador O"){
-						io.emit('Ganador','O');
-					}
-				} //fin segundo else
+        					//Compruebo ganador
+        					var hayGanador= comprobarSiHayGanador();
+        					console.log(jugadas);
+        					console.log(board);
 
 
-			}//fin primer else
-		});
-	}
+        					io.emit('jugada activa', {     tablero: jugadas,
+                                                 fila: fila,
+        					                               col : col,
+        					                               jugador:jugador});
+
+        				    //El mensaje se envia a cada jugador
+        				    if(hayGanador === "No hay Ganadores"){
+        						io.emit('Msje_Broadcast', { texto: 'No hay Ganadores'});
+        					}
+
+        					else if(hayGanador === "Sigan Jugando"){
+        						io.emit('Msje_Broadcast', { texto: 'Sigan Jugando'});
+        					}
+
+        					else if(hayGanador === "Gano Jugador X"){
+        						io.emit('Ganador', 'X');
+        					}
+        					else if(hayGanador === "Gano Jugador O"){
+        						io.emit('Ganador','O');
+        					}
+        				} //fin segundo else
+
+
+        			}//fin primer else
+        		});*/
+    });
+
+    socket.on('cambiardeSala', function(newroom) {
+        var oldroom;
+        oldroom = socket.room;
+        socket.leave(socket.room);
+        socket.join(newroom);
+        socket.emit('Msje_Personal', 'SERVER', 'te has conectado a la sala ' + newroom);
+        socket.broadcast.to(oldroom).emit('Msje_Broadcast', 'SERVER', socket.username + ' ha dejado la sala');
+        socket.room = newroom;
+        socket.broadcast.to(newroom).emit('Msje_Broadcast', 'SERVER', socket.username + ' se ha unido a la sala');
+        socket.emit('actualizarSalas', rooms, newroom);
+
+
+        /*if( jugadores.X === ''){
+          jugadores.X= socket.id;
+          socket.emit('Designar', {texto: 'Eres el jugador X', jugador: 'X'});
+        }
+        else if(jugadores.O === ''){
+          jugadores.O= socket.id;
+          socket.emit('Designar', {texto: 'Eres el jugador O', jugador: 'O'});
+        }
+        else{
+          socket.emit( 'Msje_Personal', { texto: 'Sala llena' });
+        }*/
+
+
+    });
+
+    socket.on('disconnect', function() {
+        delete usernames[socket.username];
+        io.sockets.emit('agregarUsuarios', usernames);
+        socket.broadcast.emit('Msje_Broadcast', 'SERVER', socket.username + ' se ha desconectado');
+        socket.leave(socket.room);
+    });
+
+
+
 
 
 });

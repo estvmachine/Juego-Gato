@@ -13,7 +13,7 @@ var gtipoJugador='',
 
 $(document).ready(function(){
 
-
+    $('#tablero').hide();
 
     $('.cuadro').click(function (event) {
 
