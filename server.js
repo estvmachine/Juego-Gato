@@ -46,6 +46,7 @@ var jugadaAnterior='';
 
 var usernames = {};
 var rooms = ['Lobby'];
+var participantes={ 'Lobby': [] };
 
 
 /*
@@ -133,9 +134,22 @@ io.on('connection', function(socket){
         socket.room = 'Lobby';
         usernames[username] = username;
         socket.join('Lobby');
-        socket.emit('Msje_Personal', 'SERVER', 'te haces conectado al Lobby');
+        socket.emit('Msje_Personal', { emisor: 'SERVER', texto: 'te haces conectado al Lobby' });
         socket.broadcast.to('Lobby').emit('msje_sala', 'SERVER', username + ' se ha conectado a esta sala');
         socket.emit('actualizarSalas', rooms, 'Lobby');
+
+        if(participantes['Lobby'].length === 0  && participantes['Lobby'].indexOf(username)=== -1 ){
+          participantes['Lobby'].push(username);
+          socket.emit('Designar', {texto: 'Eres el jugador X', jugador: 'X'});
+        }
+        else if(participantes['Lobby'].length === 1 && participantes['Lobby'].indexOf(username)=== -1 ){
+          participantes['Lobby'].push(username);
+          socket.emit('Designar', {texto: 'Eres el jugador O', jugador: 'O'});
+        }
+        else{
+          socket.emit( 'Msje_Personal', { texto: 'Sala llena' });
+        }
+
     });
 
     socket.on('crearSala', function(room) {
@@ -143,8 +157,8 @@ io.on('connection', function(socket){
         socket.emit('actualizarSalas', rooms, socket.room);
     });
 
-    socket.on('jugada', function(data) {
-        io.sockets["in"](socket.room).emit('Msje_Personal', socket.username, data);
+    socket.on('actualizarJugadas', function(data) {
+        io.sockets["in"](socket.room).emit('Msje_Broadcast', socket.username, data);
 
         /*
         		socket.on('jugada', function(msg){
@@ -223,17 +237,6 @@ io.on('connection', function(socket){
         socket.emit('actualizarSalas', rooms, newroom);
 
 
-        /*if( jugadores.X === ''){
-          jugadores.X= socket.id;
-          socket.emit('Designar', {texto: 'Eres el jugador X', jugador: 'X'});
-        }
-        else if(jugadores.O === ''){
-          jugadores.O= socket.id;
-          socket.emit('Designar', {texto: 'Eres el jugador O', jugador: 'O'});
-        }
-        else{
-          socket.emit( 'Msje_Personal', { texto: 'Sala llena' });
-        }*/
 
 
     });

@@ -1,5 +1,5 @@
 //Declaro dependencias
-var socket = io();
+var socket = io.connect('http://localhost:8080');
 
 
 //Declaro variables globales
@@ -11,30 +11,49 @@ var gtipoJugador='',
     				['', '', '']
     			];
 
-$(document).ready(function(){
 
-    $('#tablero').hide();
+socket.on('connect', function(){
+  socket.emit('agregarUsuario', prompt("Cual es tu nick: "));
+});
 
-    $('.cuadro').click(function (event) {
+socket.on('Designar', function(msg){
+  document.getElementById("txt-resultado").innerHTML = msg.texto;
+  gtipoJugador= msg.jugador;
+});
 
-        var partes= (this.id).split('-'),
-            fila = partes[0].replace('fila',''),
-            col = partes[1].replace('col',''),
-            jugador= gtipoJugador;
+socket.on('actualizarJugadas', function (username, data) {
+  console.log(username);
+  console.log(data);
+  llenarTablero(data.jugadas);
+});
 
-        socket.emit('jugada', {fila: fila,
-                               col : col,
-                               jugador:jugador} );
 
+socket.on('actualizarSalas', function (rooms, current_room) {
+  $('#rooms').empty();
+    $.each(rooms, function(key, value) {
+       if(value == current_room){
+           $('#rooms').append('<div>' + value + '</div>');
+       }
+       else {
+           $('#rooms').append('<div><a href="#" onclick="cambiardeSala(\''+value+'\')">' + value + '</a></div>');
+       }
     });
+});
 
-     socket.on('jugada activa', function(msg){
-         var jugadas= msg.tablero;
-         llenarTablero(jugadas);
-    });
+function cambiardeSala(room){
+  socket.emit('cambiardeSala', room);
+}
 
+socket.on('Msje_Broadcast', function(username, data ){
+  document.getElementById("txt-resultado").innerHTML = data;
+});
 
-    socket.on('Ganador', function(msg){
+socket.on('Msje_Personal', function(msg){
+  document.getElementById("txt-resultado").innerHTML = msg.texto;
+
+});
+
+socket.on('Ganador', function(msg){
          var jugador= msg;
 
          if(jugador==='X'){
@@ -46,26 +65,34 @@ $(document).ready(function(){
             alert('Gano O');
          }
 
-    });
-
-    socket.on('Designar', function(msg){
-        document.getElementById("txt-resultado").innerHTML = msg.texto;
-
-        gtipoJugador= msg.jugador;
-
-    });
-
-    socket.on('Msje_Broadcast', function(msg){
-        document.getElementById("txt-resultado").innerHTML = msg.texto;
-    });
-
-    socket.on('Msje_Personal', function(msg){
-        document.getElementById("txt-resultado").innerHTML = msg.texto;
-
-    });
-
-
 });
+
+//Funcionalidad de elementos de la pagina
+
+$(document).ready(function(){
+
+        $('#tablero').hide();
+
+        $('.cuadro').click(function (event) {
+
+            var partes= (this.id).split('-'),
+                fila = partes[0].replace('fila',''),
+                col = partes[1].replace('col',''),
+                jugador= gtipoJugador;
+
+            socket.emit('jugada', {fila: fila,
+                                   col : col,
+                                   jugador:jugador} );
+
+        });
+
+        $('#roombutton').click(function(){
+           var name = $('#roomname').val();
+           $('#roomname').val('');
+           socket.emit('crearSala', name)
+        });
+
+    });
 
 
 /****************************LIBRERIA********************************/
