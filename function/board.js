@@ -21,10 +21,10 @@ socket.on('Designar', function(msg){
   gtipoJugador= msg.jugador;
 });
 
-socket.on('actualizarJugadas', function (username, data) {
+socket.on('actualizarJugadas', function (username, jugadas) {
   console.log(username);
-  console.log(data);
-  llenarTablero(data.jugadas);
+  console.log(jugadas);
+  llenarTablero(jugadas);
 });
 
 
@@ -44,7 +44,7 @@ function cambiardeSala(room){
   socket.emit('cambiardeSala', room);
 }
 
-socket.on('Msje_Broadcast', function(username, data ){
+socket.on('Msje_Broadcast', function(data ){
   document.getElementById("txt-resultado").innerHTML = data;
 });
 
@@ -71,7 +71,7 @@ socket.on('Ganador', function(msg){
 
 $(document).ready(function(){
 
-        $('#tablero').hide();
+        //$('#tablero').hide();
 
         $('.cuadro').click(function (event) {
 
@@ -80,7 +80,8 @@ $(document).ready(function(){
                 col = partes[1].replace('col',''),
                 jugador= gtipoJugador;
 
-            socket.emit('jugada', {fila: fila,
+
+            socket.emit('realizarJugada', {fila: fila,
                                    col : col,
                                    jugador:jugador} );
 
@@ -100,8 +101,6 @@ $(document).ready(function(){
 
 //Esta funcion es para enviar mensajes a servidor
 function llenarTablero(arrayJugadas){
-
-    console.log(arrayJugadas);
 
     for(var posfila=0; posfila<3 ; posfila++){
       for(var poscol=0; poscol<3 ; poscol++){

@@ -5,8 +5,6 @@ var express = require('express')
   , io = require('socket.io')(server);
 
 var port = 8080;
-var existeganador = false;
-
 server.listen(port);
 
 console.log("Node.js está corriendo en el puerto " + port);
@@ -29,24 +27,26 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/view/index.html');
 });
 
-var board = [
+var usernames = {},
+    rooms = ['Lobby'];
+
+
+//Inicio estructura que contendra cada sala
+var board = {'Lobby' :[
 				[false, false, false],
 				[false, false, false],
 				[false, false, false]
-			];
+			]};
 
-var jugadas= [
-				['', '', ''],
-				['', '', ''],
-				['', '', '']
-			];
+var jugadas= {'Lobby': [
+      				['', '', ''],
+      				['', '', ''],
+      				['', '', '']
+      			]};
 
-var jugadores={X: '', O: ''};
-var jugadaAnterior='';
-
-var usernames = {};
-var rooms = ['Lobby'];
+var jugadaAnterior= {'Lobby': ''};
 var participantes={ 'Lobby': [] };
+var existeganador={'Lobby': false};
 
 
 /*
@@ -54,27 +54,30 @@ var participantes={ 'Lobby': [] };
 *col:Columna
 *jugada: Puede ser X ó O, pero como string
 */
-function analizarTablero(row, col,jugada){
-	if (board [row-1][col-1] === false)
+function analizarTablero(row, col,jugada, sala){
+	 var tablero_sala= board[sala];
+
+  if (tablero_sala[row-1][col-1] === false)
 		return "Posicion recien llena";
 	else
 		return "Posicion ya ocupada";
 
 }
 
-function colocarJugadas(row, col, jugada){
+function colocarJugadas(row, col, jugada, sala){
+  var tablero_sala= board[sala],
+      jugadas_sala= jugadas[sala];
 
-	console.log(jugada);
-	if (board [row-1][col-1] === false){
+	if (tablero_sala[row-1][col-1] === false){
 		//Ocupo posicion del tablero
-		board[row-1][col-1]  =  true;
+    tablero_sala[row-1][col-1]  =  true;
 
 		if(jugada === 'X'){
-			jugadas[row-1][col-1]= 'X';
+      jugadas_sala[row-1][col-1]= 'X';
 			return "Turno de Jugador O";
 		}
 		else{
-			jugadas[row-1][col-1]= 'O';
+      jugadas_sala[row-1][col-1]= 'O';
 			return "Turno Jugador X"
 		}
 	}
@@ -83,38 +86,40 @@ function colocarJugadas(row, col, jugada){
 }
 
 
-function comprobarSiHayGanador(){
+function comprobarSiHayGanador(sala){
+  var tablero_sala= board[sala],
+      jugadas_sala= jugadas[sala];
 
-	if(      ((jugadas[0][0]=== 'X' )	&&    (jugadas[1][0]=== 'X') 	&&    (jugadas[2][0]=== 'X'))
-		||   ((jugadas[0][0]=== 'X' )	&&    (jugadas[0][1]=== 'X') 	&&    (jugadas[0][2]=== 'X'))
-		||   ((jugadas[0][0]=== 'X' )	&&    (jugadas[1][1]=== 'X') 	&&    (jugadas[2][2]=== 'X'))
-		||   ((jugadas[1][0]=== 'X' )	&&    (jugadas[1][1]=== 'X') 	&&    (jugadas[1][2]=== 'X'))
-		||   ((jugadas[2][0]=== 'X' )	&&    (jugadas[2][1]=== 'X') 	&&    (jugadas[2][2]=== 'X'))
-		||   ((jugadas[0][1]=== 'X' )	&&    (jugadas[1][1]=== 'X') 	&&    (jugadas[2][1]=== 'X'))
-		||   ((jugadas[0][2]=== 'X' )	&&    (jugadas[1][2]=== 'X') 	&&    (jugadas[2][2]=== 'X'))
-		||   ((jugadas[0][2]=== 'X' )	&&    (jugadas[1][1]=== 'X') 	&&    (jugadas[2][0]=== 'X'))
+	if(      ((jugadas_sala[0][0]=== 'X' )	&&    (jugadas_sala[1][0]=== 'X') 	&&    (jugadas_sala[2][0]=== 'X'))
+		||   ((jugadas_sala[0][0]=== 'X' )	&&    (jugadas_sala[0][1]=== 'X') 	&&    (jugadas_sala[0][2]=== 'X'))
+		||   ((jugadas_sala[0][0]=== 'X' )	&&    (jugadas_sala[1][1]=== 'X') 	&&    (jugadas_sala[2][2]=== 'X'))
+		||   ((jugadas_sala[1][0]=== 'X' )	&&    (jugadas_sala[1][1]=== 'X') 	&&    (jugadas_sala[1][2]=== 'X'))
+		||   ((jugadas_sala[2][0]=== 'X' )	&&    (jugadas_sala[2][1]=== 'X') 	&&    (jugadas_sala[2][2]=== 'X'))
+		||   ((jugadas_sala[0][1]=== 'X' )	&&    (jugadas_sala[1][1]=== 'X') 	&&    (jugadas_sala[2][1]=== 'X'))
+		||   ((jugadas_sala[0][2]=== 'X' )	&&    (jugadas_sala[1][2]=== 'X') 	&&    (jugadas_sala[2][2]=== 'X'))
+		||   ((jugadas_sala[0][2]=== 'X' )	&&    (jugadas_sala[1][1]=== 'X') 	&&    (jugadas_sala[2][0]=== 'X'))
 	  ){
-		existeganador = true;
+		existeganador[sala] = true;
 		return "Gano Jugador X";
 	}
 
-	if(      ((jugadas[0][0]=== 'O' )	&&    (jugadas[1][0]=== 'O') 	&&    (jugadas[2][0]=== 'O'))
-		||   ((jugadas[0][0]=== 'O' )	&&    (jugadas[0][1]=== 'O') 	&&    (jugadas[0][2]=== 'O'))
-		||   ((jugadas[0][0]=== 'O' )	&&    (jugadas[1][1]=== 'O') 	&&    (jugadas[2][2]=== 'O'))
-		||   ((jugadas[1][0]=== 'O' )	&&    (jugadas[1][1]=== 'O') 	&&    (jugadas[1][2]=== 'O'))
-		||   ((jugadas[2][0]=== 'O' )	&&    (jugadas[2][1]=== 'O') 	&&    (jugadas[2][2]=== 'O'))
-		||   ((jugadas[0][1]=== 'O' )	&&    (jugadas[1][1]=== 'O') 	&&    (jugadas[2][1]=== 'O'))
-		||   ((jugadas[0][2]=== 'O' )	&&    (jugadas[1][2]=== 'O') 	&&    (jugadas[2][2]=== 'O'))
-		||   ((jugadas[0][2]=== 'O' )	&&    (jugadas[1][1]=== 'O') 	&&    (jugadas[2][0]=== 'O'))
+	if(      ((jugadas_sala[0][0]=== 'O' )	&&    (jugadas_sala[1][0]=== 'O') 	&&    (jugadas_sala[2][0]=== 'O'))
+		||   ((jugadas_sala[0][0]=== 'O' )	&&    (jugadas_sala[0][1]=== 'O') 	&&    (jugadas_sala[0][2]=== 'O'))
+		||   ((jugadas_sala[0][0]=== 'O' )	&&    (jugadas_sala[1][1]=== 'O') 	&&    (jugadas_sala[2][2]=== 'O'))
+		||   ((jugadas_sala[1][0]=== 'O' )	&&    (jugadas_sala[1][1]=== 'O') 	&&    (jugadas_sala[1][2]=== 'O'))
+		||   ((jugadas_sala[2][0]=== 'O' )	&&    (jugadas_sala[2][1]=== 'O') 	&&    (jugadas_sala[2][2]=== 'O'))
+		||   ((jugadas_sala[0][1]=== 'O' )	&&    (jugadas_sala[1][1]=== 'O') 	&&    (jugadas_sala[2][1]=== 'O'))
+		||   ((jugadas_sala[0][2]=== 'O' )	&&    (jugadas_sala[1][2]=== 'O') 	&&    (jugadas_sala[2][2]=== 'O'))
+		||   ((jugadas_sala[0][2]=== 'O' )	&&    (jugadas_sala[1][1]=== 'O') 	&&    (jugadas_sala[2][0]=== 'O'))
 	  ){
-		existeganador = true;
+		existeganador[sala] = true;
 		return "Gano Jugador O";
 
 	}
 
-	if(    (board[0][0]=== true )	&&    (board[0][1]=== true) 	&&    (board[0][2]=== true) &&
-		   (board[1][0]=== true )	&&    (board[1][1]=== true) 	&&    (board[1][2]=== true) &&
-		   (board[2][0]=== true )	&&    (board[2][1]=== true) 	&&    (board[2][2]=== true)
+	if(    (tablero_sala[0][0]=== true )	&&    (tablero_sala[0][1]=== true) 	&&    (tablero_sala[0][2]=== true) &&
+		   (tablero_sala[1][0]=== true )	&&    (tablero_sala[1][1]=== true) 	&&    (tablero_sala[1][2]=== true) &&
+		   (tablero_sala[2][0]=== true )	&&    (tablero_sala[2][1]=== true) 	&&    (tablero_sala[2][2]=== true)
 
 	  ){
 
@@ -135,7 +140,7 @@ io.on('connection', function(socket){
         usernames[username] = username;
         socket.join('Lobby');
         socket.emit('Msje_Personal', { emisor: 'SERVER', texto: 'te haces conectado al Lobby' });
-        socket.broadcast.to('Lobby').emit('msje_sala', 'SERVER', username + ' se ha conectado a esta sala');
+        socket.broadcast.to('Lobby').emit('Msje_Broadcast', 'SERVER', username + ' se ha conectado a esta sala');
         socket.emit('actualizarSalas', rooms, 'Lobby');
 
         if(participantes['Lobby'].length === 0  && participantes['Lobby'].indexOf(username)=== -1 ){
@@ -157,72 +162,66 @@ io.on('connection', function(socket){
         socket.emit('actualizarSalas', rooms, socket.room);
     });
 
-    socket.on('actualizarJugadas', function(data) {
-        io.sockets["in"](socket.room).emit('Msje_Broadcast', socket.username, data);
 
-        /*
-        		socket.on('jugada', function(msg){
+    socket.on('realizarJugada', function(data) {
 
-        			if (existeganador === true)
+        			if (existeganador[socket.room] === true)
         					socket.emit('Msje_Personal', {texto:'Ya hay ganador felicidades'});
         			else {
 
         				//Resultado de colocar una jugada en tablero
-        				var fila = msg.fila,
-        		        	col= msg.col,
-        		        	jugador= msg.jugador;
+        				var fila = data.fila,
+        		        	col= data.col,
+        		        	jugador= data.jugador,
+                      tablero_sala= board[socket.room],
+                      jugadas_sala= jugadas[socket.room];
 
-        		        console.log(board[fila-1][col-1]);
-
-        		        if(board[fila-1][col-1]=== true ){
+        		        if(tablero_sala[fila-1][col-1]=== true ){
         		        	socket.emit( 'Msje_Personal', { texto: 'Posicion invalida'});
         		        }
 
-        		        else if(jugadaAnterior=== jugador){
+        		        else if(jugadaAnterior[socket.room]=== jugador){
 
         		        	socket.emit('Msje_Personal', {texto:'Espera tu turno'});
         		        }
 
         				else{
         		        	//Evaluo jugadaAnterior con la jugada actual
-        		        	jugadaAnterior= jugador;
+        		        	jugadaAnterior[socket.room]= jugador;
 
         		        	//Funcion que llena tabla de jugadas
         					var comprobacionjugadas = colocarJugadas(fila,
         												    col,
-        												    jugador);
+        												    jugador,
+                                    socket.room);
 
         					//Compruebo ganador
-        					var hayGanador= comprobarSiHayGanador();
-        					console.log(jugadas);
-        					console.log(board);
+        					var hayGanador= comprobarSiHayGanador(socket.room);
+        					console.log(jugadas_sala);
+        					console.log(tablero_sala);
 
-
-        					io.emit('jugada activa', {     tablero: jugadas,
-                                                 fila: fila,
-        					                               col : col,
-        					                               jugador:jugador});
+                  io.sockets["in"](socket.room).emit('actualizarJugadas', socket.username, jugadas[socket.room]);
 
         				    //El mensaje se envia a cada jugador
         				    if(hayGanador === "No hay Ganadores"){
-        						io.emit('Msje_Broadcast', { texto: 'No hay Ganadores'});
+                    io.sockets["in"](socket.room).emit('Msje_Broadcast', { texto: 'No hay Ganadores'});
         					}
 
         					else if(hayGanador === "Sigan Jugando"){
-        						io.emit('Msje_Broadcast', { texto: 'Sigan Jugando'});
+                    io.sockets["in"](socket.room).emit('Msje_Broadcast', { texto: 'Sigan Jugando'});
         					}
 
         					else if(hayGanador === "Gano Jugador X"){
-        						io.emit('Ganador', 'X');
+                    io.sockets["in"](socket.room).emit('Ganador', 'X');
         					}
         					else if(hayGanador === "Gano Jugador O"){
-        						io.emit('Ganador','O');
+                    io.sockets["in"](socket.room).emit('Ganador','O');
         					}
         				} //fin segundo else
 
 
         			}//fin primer else
-        		});*/
+
     });
 
     socket.on('cambiardeSala', function(newroom) {
