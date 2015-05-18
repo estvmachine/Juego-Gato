@@ -5,49 +5,30 @@ var express = require('express')
   , io = require('socket.io')(server);
 
 var port = 8080;
-server.listen(port);
-
-console.log("Node.js está corriendo en el puerto " + port);
-
-//Path de los CSS que utilizarán para el estilo de la página
-app.use("/css", express.static(__dirname + '/css'));
-
-//Path de los Scripts o Framework de Javascript
-//que se utilizarán para el funcionamiento de la página
-app.use("/js", express.static(__dirname + '/js'));
-
-//Path de funciones en Javascript que podrían utilizar
-app.use("/function", express.static(__dirname + '/function'));
-
-//Path de imagenes
-app.use("/img", express.static(__dirname + '/img'));
-
-//Routing
-app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/view/index.html');
-});
-
 var usernames = {},
-    rooms = ['Lobby'];
+    rooms = ['Sala1'],
+    salasLibres={'Sala1': true},
+    maximoSalas= 5;
 
 
 //Inicio estructura que contendra cada sala
-var board = {'Lobby' :[
+var board = {'Sala1' :[
 				[false, false, false],
 				[false, false, false],
 				[false, false, false]
 			]};
 
-var jugadas= {'Lobby': [
-      				['', '', ''],
-      				['', '', ''],
-      				['', '', '']
-      			]};
+var jugadas= {'Sala1': [
+                  				['', '', ''],
+                  				['', '', ''],
+                  				['', '', '']
+      			           ]
+            };
 
-var jugadaAnterior= {'Lobby': ''},
-    participantes={ 'Lobby': [] },
-    jugadores= {'Lobby': {'X': '', 'O':''} };
-    existeganador={'Lobby': false};
+var jugadaAnterior= {'Sala1': ''},
+    participantes={ 'Sala1': [] },
+    jugadores= {'Sala1': {'X': '', 'O':''} },
+    existeganador={'Sala1': false};
 
 
 /*
@@ -132,38 +113,100 @@ function comprobarSiHayGanador(sala){
 }
 
 
+function crearSala(nueva_sala){
+
+    rooms.push(nueva_sala);
+    salasLibres[nueva_sala]=true;
+
+    board[nueva_sala]= [
+                                  [false, false, false],
+                                  [false, false, false],
+                                  [false, false, false]
+                                ];
+    jugadas[nueva_sala]= [
+                                        ['', '', ''],
+                                        ['', '', ''],
+                                        ['', '', '']
+                                      ];
+    jugadaAnterior[nueva_sala]='' ;
+    participantes[nueva_sala]= [];
+    jugadores[nueva_sala]= {'X': '', 'O':''};
+    existeganador[nueva_sala]= false;
+
+};
+
+function limpiarSala(sala){
+
+  salasLibres[sala]=true;
+
+  board[sala]= [
+                                [false, false, false],
+                                [false, false, false],
+                                [false, false, false]
+                              ];
+  jugadas[sala]= [
+                                      ['', '', ''],
+                                      ['', '', ''],
+                                      ['', '', '']
+                                    ];
+  jugadaAnterior[sala]='' ;
+  participantes[sala]= [];
+  jugadores[sala]= {'X': '', 'O':''};
+  existeganador[sala]= false;
+
+}
+
 io.on('connection', function(socket){
   /*************************************************************************/
 
   socket.on('agregarUsuario', function(username) {
+
         socket.username = username;
-        socket.room = 'Lobby';
+        socket.room= '';
         usernames[username] = username;
-        socket.join('Lobby');
-        socket.emit('Msje_Personal', { emisor: 'SERVER', texto: 'te haces conectado al Lobby' });
-        socket.broadcast.to('Lobby').emit('Msje_Broadcast', 'SERVER', username + ' se ha conectado a esta sala');
-        socket.emit('actualizarSalas', rooms, 'Lobby');
 
-        if(participantes['Lobby'].length === 0  && participantes['Lobby'].indexOf(username)=== -1 ){
-          participantes['Lobby'].push(username);
-          jugadores['Lobby'].X= username;
-          socket.emit('designarTipoJugador', {texto: 'Eres el jugador X', tipoJugador: 'X', sala: socket.room, username: username});
-        }
-        else if(participantes['Lobby'].length === 1 && participantes['Lobby'].indexOf(username)=== -1 ){
-          participantes['Lobby'].push(username);
-          jugadores['Lobby'].O= username;
-          socket.emit('designarTipoJugador', {texto: 'Eres el jugador O', tipoJugador: 'O', sala: socket.room, username: username});
-          io.sockets["in"](socket.room).emit('designarEnemigo', {jugadores: jugadores[socket.room] });
-        }
-        else{
-          socket.emit( 'Msje_Personal', { texto: 'Sala llena' });
+        for(var i=1; i<=maximoSalas; i++){
+            var nombre_sala='Sala'+i;
+
+            if(salasLibres[nombre_sala]=== true){
+                socket.room= nombre_sala;
+                break;
+            }
         }
 
-    });
 
-    socket.on('crearSala', function(room) {
-        rooms.push(room);
-        socket.emit('actualizarSalas', rooms, socket.room);
+        if(socket.room !== ''){
+
+          socket.join(socket.room);
+          socket.emit('Msje_Personal', { emisor: 'SERVER', texto: 'te haz conectado a la '+ socket.room });
+          socket.broadcast.to(socket.room).emit('Msje_Broadcast', 'SERVER', username + ' se ha conectado a la '+socket.room );
+          socket.emit('actualizarSalas', rooms, socket.room);
+
+          if(participantes[socket.room].length === 0  && participantes[socket.room].indexOf(username)=== -1 ){
+            participantes[socket.room].push(username);
+            jugadores[socket.room].X= username;
+            socket.emit('designarTipoJugador', {texto: 'Eres el jugador X', tipoJugador: 'X', sala: socket.room, username: username});
+          }
+          else if(participantes[socket.room].length === 1 && participantes[socket.room].indexOf(username)=== -1 ){
+            participantes[socket.room].push(username);
+            jugadores[socket.room].O= username;
+
+            salasLibres[socket.room]= false;
+            console.log(salasLibres);
+
+            socket.emit('designarTipoJugador', {texto: 'Eres el jugador O', tipoJugador: 'O', sala: socket.room, username: username});
+            io.sockets["in"](socket.room).emit('designarEnemigo', {jugadores: jugadores[socket.room] });
+          }
+          else {
+            socket.emit( 'Msje_Personal', { texto: 'Estas como expectador' });
+          }
+
+        }
+        else {
+          socket.emit( 'Msje_Personal', { texto: 'Salas llenas' });
+        }
+
+
     });
 
 
@@ -201,14 +244,15 @@ io.on('connection', function(socket){
 
         					//Compruebo ganador
         					var hayGanador= comprobarSiHayGanador(socket.room);
-        					console.log(jugadas_sala);
-        					console.log(tablero_sala);
+        					console.log(socket.room, jugadas_sala);
+        					console.log(socket.room, tablero_sala);
 
                   io.sockets["in"](socket.room).emit('actualizarJugadas', socket.username, jugadas[socket.room]);
 
         				    //El mensaje se envia a cada jugador
         				    if(hayGanador === "No hay Ganadores"){
                     io.sockets["in"](socket.room).emit('Msje_Broadcast', { texto: 'No hay Ganadores'});
+                    limpiarSala(socket.room);
         					}
 
         					else if(hayGanador === "Sigan Jugando"){
@@ -217,9 +261,11 @@ io.on('connection', function(socket){
 
         					else if(hayGanador === "Gano Jugador X"){
                     io.sockets["in"](socket.room).emit('Ganador', 'X');
+                    limpiarSala(socket.room);
         					}
         					else if(hayGanador === "Gano Jugador O"){
                     io.sockets["in"](socket.room).emit('Ganador','O');
+                    limpiarSala(socket.room);
         					}
         				} //fin segundo else
 
@@ -249,7 +295,32 @@ io.on('connection', function(socket){
     });
 
 
+});
 
 
 
+server.listen(port);
+
+for(var i=2; i <= maximoSalas; i++){
+  crearSala('Sala'+i);
+}
+console.log(board);
+console.log("Node.js está corriendo en el puerto " + port);
+
+//Path de los CSS que utilizarán para el estilo de la página
+app.use("/css", express.static(__dirname + '/css'));
+
+//Path de los Scripts o Framework de Javascript
+//que se utilizarán para el funcionamiento de la página
+app.use("/js", express.static(__dirname + '/js'));
+
+//Path de funciones en Javascript que podrían utilizar
+app.use("/function", express.static(__dirname + '/function'));
+
+//Path de imagenes
+app.use("/img", express.static(__dirname + '/img'));
+
+//Routing
+app.get('/', function (req, res) {
+  res.sendfile(__dirname + '/view/index.html');
 });
