@@ -4,8 +4,12 @@ var socket = io();
 
 //Declaro variables globales
 var gtipoJugador='',
-    nickUsuario='',
-    tablero=[];
+    gnickUsuario='',
+    gtablero= [
+            ['', '', ''],
+    				['', '', ''],
+    				['', '', '']
+    			];
 
 $(document).ready(function(){
 
@@ -25,16 +29,8 @@ $(document).ready(function(){
     });
 
      socket.on('jugada activa', function(msg){
-          //Dibujo un circulo en la posicion indicada: hay que descifrar msg-> fila y columna
-         var fila = msg.fila,
-             col= msg.col,
-             jugador= msg.jugador;
-
-         if(jugador==='X')
-            $('#fila'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-x.png" />');
-         else
-            $('#fila'+fila + '-col'+col).html('<img style="height: 120px;width:120px; "src="../img/ink-circle.png" />');
-
+         var jugadas= msg.tablero;
+         llenarTablero(jugadas);
     });
 
 
@@ -76,22 +72,25 @@ $(document).ready(function(){
 //Si esta fuera de document.ready, es parte de la libreria
 
 //Esta funcion es para enviar mensajes a servidor
-function send(fila, col, jugador){
+function llenarTablero(arrayJugadas){
 
-    var urlTweet = 'http://localhost:8080/colocarJugada/' + fila + '/' + col + '/' + jugador;
+    console.log(arrayJugadas);
 
-    $.ajax({ url: urlTweet, type: 'GET', dataType: "json",
-    success: function(resultData) {
+    for(var posfila=0; posfila<3 ; posfila++){
+      for(var poscol=0; poscol<3 ; poscol++){
 
-        //Escribo mensaje en la pantalla
-        document.getElementById("txt-resultado").innerHTML = resultData;
+          if(gtablero[posfila][poscol] !== arrayJugadas[posfila][poscol]){
 
-    },
-    error: function(xhr, status, error){
-        console.log(xhr);
-        console.log(status);
-        console.log(error);
-        console.log('Error send request');
+              if(arrayJugadas[posfila][poscol]==='X'){
+                 $('#fila'+ (posfila+1) + '-col'+ (poscol+1)  ).html('<img style="height: 120px;width:120px; "src="../img/ink-x.png" />');
+               }
+
+              else{
+                $('#fila'+ (posfila+1) + '-col'+ (poscol+1)  ).html('<img style="height: 120px;width:120px; "src="../img/ink-circle.png" />');
+              }
+          }
+      }
     }
-  });
+
+    gtablero= arrayJugadas;
 }
