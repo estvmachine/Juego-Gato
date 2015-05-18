@@ -13,12 +13,26 @@ var gtipoJugador='',
 
 
 socket.on('connect', function(){
-  socket.emit('agregarUsuario', prompt("Cual es tu nick: "));
+  socket.emit('agregarUsuario', prompt("Cual es tu nick?: "));
 });
 
-socket.on('Designar', function(msg){
-  document.getElementById("txt-resultado").innerHTML = msg.texto;
-  gtipoJugador= msg.jugador;
+socket.on('designarTipoJugador', function(data){
+  document.getElementById("showSalaActual").innerHTML= data.sala;
+  document.getElementById("showNickUser").innerHTML= data.username + ' ('+ data.tipoJugador + ')';
+  gtipoJugador= data.tipoJugador;
+  document.getElementById("txt-resultado").innerHTML = data.texto;
+
+});
+
+socket.on('designarEnemigo', function(data){
+
+    if(gtipoJugador=== 'X'){
+      document.getElementById("showNickEnemy").innerHTML=  data.jugadores.O + ' (O)';
+    }
+    else if(gtipoJugador=== 'O'){
+      document.getElementById("showNickEnemy").innerHTML=  data.jugadores.X + ' (X)';
+    }
+
 });
 
 socket.on('actualizarJugadas', function (username, jugadas) {
@@ -45,16 +59,16 @@ function cambiardeSala(room){
 }
 
 socket.on('Msje_Broadcast', function(data ){
-  document.getElementById("txt-resultado").innerHTML = data;
+  document.getElementById("txt-resultado").innerHTML = data.texto;
 });
 
-socket.on('Msje_Personal', function(msg){
-  document.getElementById("txt-resultado").innerHTML = msg.texto;
+socket.on('Msje_Personal', function(data){
+  document.getElementById("txt-resultado").innerHTML = data.texto;
 
 });
 
-socket.on('Ganador', function(msg){
-         var jugador= msg;
+socket.on('Ganador', function(data){
+         var jugador= data;
 
          if(jugador==='X'){
             document.getElementById("txt-resultado").innerHTML = 'Gano jugador X';

@@ -44,9 +44,10 @@ var jugadas= {'Lobby': [
       				['', '', '']
       			]};
 
-var jugadaAnterior= {'Lobby': ''};
-var participantes={ 'Lobby': [] };
-var existeganador={'Lobby': false};
+var jugadaAnterior= {'Lobby': ''},
+    participantes={ 'Lobby': [] },
+    jugadores= {'Lobby': {'X': '', 'O':''} };
+    existeganador={'Lobby': false};
 
 
 /*
@@ -145,11 +146,14 @@ io.on('connection', function(socket){
 
         if(participantes['Lobby'].length === 0  && participantes['Lobby'].indexOf(username)=== -1 ){
           participantes['Lobby'].push(username);
-          socket.emit('Designar', {texto: 'Eres el jugador X', jugador: 'X'});
+          jugadores['Lobby'].X= username;
+          socket.emit('designarTipoJugador', {texto: 'Eres el jugador X', tipoJugador: 'X', sala: socket.room, username: username});
         }
         else if(participantes['Lobby'].length === 1 && participantes['Lobby'].indexOf(username)=== -1 ){
           participantes['Lobby'].push(username);
-          socket.emit('Designar', {texto: 'Eres el jugador O', jugador: 'O'});
+          jugadores['Lobby'].O= username;
+          socket.emit('designarTipoJugador', {texto: 'Eres el jugador O', tipoJugador: 'O', sala: socket.room, username: username});
+          io.sockets["in"](socket.room).emit('designarEnemigo', {jugadores: jugadores[socket.room] });
         }
         else{
           socket.emit( 'Msje_Personal', { texto: 'Sala llena' });
@@ -229,21 +233,18 @@ io.on('connection', function(socket){
         oldroom = socket.room;
         socket.leave(socket.room);
         socket.join(newroom);
-        socket.emit('Msje_Personal', 'SERVER', 'te has conectado a la sala ' + newroom);
-        socket.broadcast.to(oldroom).emit('Msje_Broadcast', 'SERVER', socket.username + ' ha dejado la sala');
+        socket.emit('Msje_Personal', {texto: 'te has conectado a la sala ' + newroom } );
+        socket.broadcast.to(oldroom).emit('Msje_Broadcast', { texto: socket.username + ' ha dejado la sala'} );
         socket.room = newroom;
-        socket.broadcast.to(newroom).emit('Msje_Broadcast', 'SERVER', socket.username + ' se ha unido a la sala');
+        socket.broadcast.to(newroom).emit('Msje_Broadcast', { texto: socket.username + ' se ha unido a la sala' });
         socket.emit('actualizarSalas', rooms, newroom);
-
-
-
 
     });
 
-    socket.on('disconnect', function() {
+    socket.on('desconectar', function() {
         delete usernames[socket.username];
         io.sockets.emit('agregarUsuarios', usernames);
-        socket.broadcast.emit('Msje_Broadcast', 'SERVER', socket.username + ' se ha desconectado');
+        socket.broadcast.emit('Msje_Broadcast', { texto: socket.username + ' se ha desconectado'});
         socket.leave(socket.room);
     });
 
