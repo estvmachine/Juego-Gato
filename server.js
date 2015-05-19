@@ -162,49 +162,30 @@ io.on('connection', function(socket){
   socket.on('agregarUsuario', function(username) {
 
         socket.username = username;
-        socket.room= '';
+        socket.room= 'Lobby';
         usernames[username] = username;
 
-        for(var i=1; i<=maximoSalas; i++){
+        /*for(var i=1; i<=maximoSalas; i++){
             var nombre_sala='Sala'+i;
 
             if(salasLibres[nombre_sala]=== true){
                 socket.room= nombre_sala;
                 break;
             }
-        }
+        }*/
 
 
-        if(socket.room !== ''){
+        //if(socket.room !== ''){
 
           socket.join(socket.room);
           socket.emit('Msje_Personal', { emisor: 'SERVER', texto: 'te haz conectado a la '+ socket.room });
           socket.broadcast.to(socket.room).emit('Msje_Broadcast', 'SERVER', username + ' se ha conectado a la '+socket.room );
           socket.emit('actualizarSalas', rooms, socket.room);
 
-          if(participantes[socket.room].length === 0  && participantes[socket.room].indexOf(username)=== -1 ){
-            participantes[socket.room].push(username);
-            jugadores[socket.room].X= username;
-            socket.emit('designarTipoJugador', {texto: 'Eres el jugador X', tipoJugador: 'X', sala: socket.room, username: username});
-          }
-          else if(participantes[socket.room].length === 1 && participantes[socket.room].indexOf(username)=== -1 ){
-            participantes[socket.room].push(username);
-            jugadores[socket.room].O= username;
-
-            salasLibres[socket.room]= false;
-            console.log(salasLibres);
-
-            socket.emit('designarTipoJugador', {texto: 'Eres el jugador O', tipoJugador: 'O', sala: socket.room, username: username});
-            io.sockets["in"](socket.room).emit('designarEnemigo', {jugadores: jugadores[socket.room] });
-          }
-          else {
-            socket.emit( 'Msje_Personal', { texto: 'Estas como expectador' });
-          }
-
-        }
+        /*}
         else {
           socket.emit( 'Msje_Personal', { texto: 'Salas llenas' });
-        }
+        }*/
 
 
     });
@@ -275,15 +256,44 @@ io.on('connection', function(socket){
     });
 
     socket.on('cambiardeSala', function(newroom) {
-        var oldroom;
+        var oldroom,
+            username;
+
         oldroom = socket.room;
         socket.leave(socket.room);
+        username=   socket.username;
+
+
+        //Desconexion de sala antigua
         socket.join(newroom);
         socket.emit('Msje_Personal', {texto: 'te has conectado a la sala ' + newroom } );
         socket.broadcast.to(oldroom).emit('Msje_Broadcast', { texto: socket.username + ' ha dejado la sala'} );
+
+        //Ingreso a sala nueva
         socket.room = newroom;
         socket.broadcast.to(newroom).emit('Msje_Broadcast', { texto: socket.username + ' se ha unido a la sala' });
         socket.emit('actualizarSalas', rooms, newroom);
+
+
+        //Asignacion de jugador
+        if(participantes[socket.room].length === 0  && participantes[socket.room].indexOf(username)=== -1 ){
+          participantes[socket.room].push(username);
+          jugadores[socket.room].X= username;
+          socket.emit('designarTipoJugador', {texto: 'Eres el jugador X', tipoJugador: 'X', sala: socket.room, username: username});
+        }
+        else if(participantes[socket.room].length === 1 && participantes[socket.room].indexOf(username)=== -1 ){
+          participantes[socket.room].push(username);
+          jugadores[socket.room].O= username;
+
+          salasLibres[socket.room]= false;
+          console.log(salasLibres);
+
+          socket.emit('designarTipoJugador', {texto: 'Eres el jugador O', tipoJugador: 'O', sala: socket.room, username: username});
+          io.sockets["in"](socket.room).emit('designarEnemigo', {jugadores: jugadores[socket.room] });
+        }
+        else {
+          socket.emit( 'Msje_Personal', { texto: 'Estas como expectador' });
+        }
 
     });
 

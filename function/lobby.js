@@ -4,7 +4,8 @@ var socket = io.connect('http://localhost:8080');
 //Declaro variables globales
 var gSalas= {},
     gJugadores={},
-    gRanking=[];
+    gRanking=[],
+    gtipoJugador='';
 
 var controladorTablaSala= {
 
@@ -24,12 +25,32 @@ var controladorTablaSala= {
       			     this.vhtml += "<tr>";
                  this.vhtml += "  <td>" + sala + "</td>";
                  this.vhtml += "  <td>" + disponibles[sala] + "</td>";
-                 this.vhtml += ' <td><button type="submit" id="'+sala+'" class="btn btn-success flright btnSala">Entrar</button></td>';
+                 this.vhtml += ' <td><button type="submit" id="'+sala+'" class="btn btn-success btnSala">Entrar</button></td>';
             }
 
       			$("#tablaSalas").html(this.vhtml);
          }
     }
+
+
+
+
+socket.on('Msje_Broadcast', function(data ){
+  document.getElementById("txt-resultado").innerHTML = data.texto;
+});
+
+socket.on('Msje_Personal', function(data){
+  document.getElementById("txt-resultado").innerHTML = data.texto;
+
+});
+
+socket.on('designarTipoJugador', function(data){
+
+  gtipoJugador= data.tipoJugador;
+  console.log(gtipoJugador);
+
+});
+
 
 $(document).ready(function(){
 
@@ -41,17 +62,16 @@ $(document).ready(function(){
   });
 
 
-  $(".btnSala").click(function (event) {
+  $(document).on("click", ".btnSala", function (event) {
 
       //this.id -> es el numero de la sala que se quiere entrar
       console.log(this.id);
       var sala= this.id;
       socket.emit('cambiardeSala', sala);
+      window.top.location.href='../sala/'+sala;
   });
 
 });
-
-
 
 function obtenerRanking(){
     var urlTweet = 'http://localhost:8080/ranking';
