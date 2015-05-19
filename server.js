@@ -298,15 +298,32 @@ io.on('connection', function(socket){
 });
 
 
+//Routing
+app.get('/', function (req, res) {
+  res.sendfile(__dirname + '/view/lobby.html');
+});
 
-server.listen(port);
+app.get('/sala/:salaId', function (req, res) {
+  console.log(req.params.salaId);
+  res.sendfile(__dirname + '/view/index.html');
+
+});
+
+app.route('/ranking')
+      .get(function(req,res){
+        res.json('No implementado aun');
+      });
+
+
+app.route('/salas')
+      .get(function(req,res){
+        res.json({salas: rooms, disponibles: salasLibres, participantes: participantes, jugadores: jugadores});
+      });
+
 
 for(var i=2; i <= maximoSalas; i++){
   crearSala('Sala'+i);
 }
-console.log(board);
-console.log("Node.js está corriendo en el puerto " + port);
-
 //Path de los CSS que utilizarán para el estilo de la página
 app.use("/css", express.static(__dirname + '/css'));
 
@@ -320,18 +337,7 @@ app.use("/function", express.static(__dirname + '/function'));
 //Path de imagenes
 app.use("/img", express.static(__dirname + '/img'));
 
-//Routing
-app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/view/lobby.html');
-});
 
-app.get('/sala/:salaId', function (req, res) {
-  console.log(req.salaId);
-  res.sendfile(__dirname + '/view/index.html');
-
-});
-
-app.param('salaId', function(req,res,next,id){
-    req.salaId= id;
-    next();
-});
+console.log(board);
+server.listen(port);
+console.log("Node.js está corriendo en el puerto " + port);

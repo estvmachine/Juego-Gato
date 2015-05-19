@@ -11,11 +11,6 @@ var gtipoJugador='',
     				['', '', '']
     			];
 
-
-socket.on('connect', function(){
-  socket.emit('agregarUsuario', prompt("Cual es tu nick?: "));
-});
-
 socket.on('designarTipoJugador', function(data){
   document.getElementById("showSalaActual").innerHTML= data.sala;
   document.getElementById("showNickUser").innerHTML= data.username + ' ('+ data.tipoJugador + ')';
