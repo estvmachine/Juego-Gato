@@ -322,5 +322,16 @@ app.use("/img", express.static(__dirname + '/img'));
 
 //Routing
 app.get('/', function (req, res) {
+  res.sendfile(__dirname + '/view/lobby.html');
+});
+
+app.get('/sala/:salaId', function (req, res) {
+  console.log(req.salaId);
   res.sendfile(__dirname + '/view/index.html');
+
+});
+
+app.param('salaId', function(req,res,next,id){
+    req.salaId= id;
+    next();
 });
