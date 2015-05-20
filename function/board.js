@@ -22,7 +22,8 @@ socket.on('informarCambioDeSala',function(username, room){
 
 socket.on('designarTipoJugador', function(data){
   gtipoJugador= data.tipoJugador;
-
+  console.log(data);
+  
   if(gtipoJugador==='Expectador'){
 
     document.getElementById('info').style.visibility='hidden';
