@@ -159,37 +159,41 @@ function limpiarSala(sala){
 io.on('connection', function(socket){
   /*************************************************************************/
 
-  socket.on('agregarUsuario', function(username) {
+  socket.on('informarNick',function(username){
+    socket.username = username;
+    usernames[username] = username;
+  });
 
-        socket.username = username;
-        socket.room= '';
-        usernames[username] = username;
+  socket.on('iniciarSala', function(username, room) {
 
-        for(var i=1; i<=maximoSalas; i++){
+        socket.room= room;
+
+      /*  for(var i=1; i<=maximoSalas; i++){
             var nombre_sala='Sala'+i;
 
             if(salasLibres[nombre_sala]=== true){
                 socket.room= nombre_sala;
                 break;
             }
-        }
+        }*/
 
+        if(socket.room !== 'Lobby'){
 
-        if(socket.room !== ''){
-
-          socket.join(socket.room);
+          //socket.join(socket.room);
           socket.emit('Msje_Personal', { emisor: 'SERVER', texto: 'te haz conectado a la '+ socket.room });
-          socket.broadcast.to(socket.room).emit('Msje_Broadcast', 'SERVER', username + ' se ha conectado a la '+socket.room );
-          socket.emit('actualizarSalas', rooms, socket.room);
+          socket.broadcast.to(socket.room).emit('Msje_Broadcast', { texto: username + ' se ha conectado a la '+socket.room } );
 
-          if(participantes[socket.room].length === 0  && participantes[socket.room].indexOf(username)=== -1 ){
+          console.log('Jugadores en la '+socket.room + ' antes que ingrese '+socket.username);
+          if( jugadores[socket.room].X === '' ){
             participantes[socket.room].push(username);
             jugadores[socket.room].X= username;
+            console.log(socket.username + 'es el jugador X en la '+socket.room);
             socket.emit('designarTipoJugador', {texto: 'Eres el jugador X', tipoJugador: 'X', sala: socket.room, username: username});
           }
-          else if(participantes[socket.room].length === 1 && participantes[socket.room].indexOf(username)=== -1 ){
+          else if( jugadores[socket.room].O= '' ){
             participantes[socket.room].push(username);
             jugadores[socket.room].O= username;
+            console.log(socket.username + 'es el jugador O en la '+socket.room);
 
             salasLibres[socket.room]= false;
             console.log(salasLibres);
@@ -203,7 +207,7 @@ io.on('connection', function(socket){
 
         }
         else {
-          socket.emit( 'Msje_Personal', { texto: 'Salas llenas' });
+          socket.emit( 'Msje_Personal', { texto: 'Escoge una sala para empezar a jugar' });
         }
 
 
@@ -227,10 +231,10 @@ io.on('connection', function(socket){
         		        	socket.emit( 'Msje_Personal', { texto: 'Posicion invalida'});
         		        }
 
-        		        else if(jugadaAnterior[socket.room]=== jugador){
+        		        /*else if(jugadaAnterior[socket.room]=== jugador){
 
         		        	socket.emit('Msje_Personal', {texto:'Espera tu turno'});
-        		        }
+        		        }*/
 
         				else{
         		        	//Evaluo jugadaAnterior con la jugada actual
@@ -274,7 +278,7 @@ io.on('connection', function(socket){
 
     });
 
-    socket.on('cambiardeSala', function(newroom) {
+    socket.on('cambiardeSala', function(newroom,tipoJugador) {
         var oldroom;
         oldroom = socket.room;
         socket.leave(socket.room);
@@ -283,7 +287,19 @@ io.on('connection', function(socket){
         socket.broadcast.to(oldroom).emit('Msje_Broadcast', { texto: socket.username + ' ha dejado la sala'} );
         socket.room = newroom;
         socket.broadcast.to(newroom).emit('Msje_Broadcast', { texto: socket.username + ' se ha unido a la sala' });
-        socket.emit('actualizarSalas', rooms, newroom);
+        socket.emit('informarCambioDeSala',socket.username, newroom);
+
+        if(tipoJugador=== 'X' ){
+          jugadores[socket.room].X='';
+          console.log('Se acaba de ir jugador X en la sala '+socket.room ,jugadores[socket.room]);
+        }
+        else if (tipoJugador=== 'O' ){
+          jugadores[socket.room].O='';
+          console.log('Se acaba de ir jugador O en la sala '+socket.room,jugadores[socket.room]);
+        }
+        else if (oldroom=== 'Lobby'){
+          console.log('Jugador '+socket.username+ ' se unio a la '+newroom);
+        }
 
     });
 
