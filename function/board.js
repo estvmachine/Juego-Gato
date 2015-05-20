@@ -21,11 +21,23 @@ socket.on('informarCambioDeSala',function(username, room){
 });
 
 socket.on('designarTipoJugador', function(data){
-  document.getElementById("showSalaActual").innerHTML= data.sala;
-  document.getElementById("showNickUser").innerHTML= data.username + ' ('+ data.tipoJugador + ')';
   gtipoJugador= data.tipoJugador;
-  document.getElementById("txt-resultado").innerHTML = data.texto;
-  llenarTablero(data.tablero);
+
+  if(gtipoJugador==='Expectador'){
+
+    document.getElementById('info').style.visibility='hidden';
+    document.getElementById('infoExpectador').style.visibility='visible';
+    document.getElementById("showSalaActual").innerHTML= data.sala;
+    $document.getElementById("showNickJugador1").innerHTML= data.jugadorO + ' (O)';
+    $document.getElementById("showNickJugador2").innerHTML=  data.jugadorX + ' (X)';
+    llenarTablero(data.tablero);
+  }
+  else{
+    document.getElementById("showSalaActual").innerHTML= data.sala;
+    document.getElementById("showNickUser").innerHTML= data.username + ' ('+ data.tipoJugador + ')';
+    document.getElementById("txt-resultado").innerHTML = data.texto;
+    llenarTablero(data.tablero);
+  }
 
 
 });
@@ -75,6 +87,7 @@ socket.on('Ganador', function(data){
 
 $(document).ready(function(){
 
+        document.getElementById('infoExpectador').style.visibility='hidden';
         document.getElementById('tablero').style.visibility='hidden';
         document.getElementById('info').style.visibility='hidden';
 

@@ -198,11 +198,14 @@ io.on('connection', function(socket){
             salasLibres[socket.room]= false;
             console.log(salasLibres);
 
-            socket.emit('designarTipoJugador', {texto: 'Eres el jugador O', tipoJugador: 'O', sala: socket.room, username: username});
+            socket.emit('designarTipoJugador', {texto: 'Eres el jugador O', tipoJugador: 'O', sala: socket.room, username: username });
             io.sockets["in"](socket.room).emit('designarEnemigo', {jugadores: jugadores[socket.room] });
           }
           else {
-            socket.emit( 'Msje_Personal', { texto: 'Estas como expectador' });
+            var jugadorX=jugadores[socket.room].X;
+            var jugadorO=jugadores[socket.room].O;
+            
+            socket.emit('designarTipoJugador', {texto: 'Eres expectador', tipoJugador: 'Expectador', sala: socket.room, username: username, jugadorX:jugadorX , jugadorO: jugadorO  });
           }
 
         }
@@ -227,53 +230,56 @@ io.on('connection', function(socket){
                       tablero_sala= board[socket.room],
                       jugadas_sala= jugadas[socket.room];
 
-        		        if(tablero_sala[fila-1][col-1]=== true ){
-        		        	socket.emit( 'Msje_Personal', { texto: 'Posicion invalida'});
-        		        }
+                //Verifico si es expectador
+                if(jugador=== 'Expectador'){
 
-        		        else if(jugadaAnterior[socket.room]=== jugador){
+                }
+                else{
+                  if(tablero_sala[fila-1][col-1]=== true ){
+          		        socket.emit( 'Msje_Personal', { texto: 'Posicion invalida'});
+          		    }
 
-        		        	socket.emit('Msje_Personal', {texto:'Espera tu turno'});
-        		        }
+          		    else if(jugadaAnterior[socket.room]=== jugador){
+                      socket.emit('Msje_Personal', {texto:'Espera tu turno'});
+          		    }
 
-        				else{
-        		        	//Evaluo jugadaAnterior con la jugada actual
-        		        	jugadaAnterior[socket.room]= jugador;
+          				else{
+          		        	//Evaluo jugadaAnterior con la jugada actual
+          		        	jugadaAnterior[socket.room]= jugador;
 
-        		        	//Funcion que llena tabla de jugadas
-        					var comprobacionjugadas = colocarJugadas(fila,
-        												    col,
-        												    jugador,
-                                    socket.room);
+          		        	//Funcion que llena tabla de jugadas
+          					var comprobacionjugadas = colocarJugadas(fila,
+          												    col,
+          												    jugador,
+                                      socket.room);
 
-        					//Compruebo ganador
-        					var hayGanador= comprobarSiHayGanador(socket.room);
-        					console.log(socket.room, jugadas_sala);
-        					console.log(socket.room, tablero_sala);
+          					//Compruebo ganador
+          					var hayGanador= comprobarSiHayGanador(socket.room);
+          					console.log(socket.room, jugadas_sala);
+          					console.log(socket.room, tablero_sala);
 
-                  io.sockets["in"](socket.room).emit('actualizarJugadas', socket.username, jugadas[socket.room]);
+                    io.sockets["in"](socket.room).emit('actualizarJugadas', socket.username, jugadas[socket.room]);
 
-        				    //El mensaje se envia a cada jugador
-        				    if(hayGanador === "No hay Ganadores"){
-                    io.sockets["in"](socket.room).emit('Msje_Broadcast', { texto: 'No hay Ganadores'});
-                    limpiarSala(socket.room);
-        					}
+          				    //El mensaje se envia a cada jugador
+          				    if(hayGanador === "No hay Ganadores"){
+                      io.sockets["in"](socket.room).emit('Msje_Broadcast', { texto: 'No hay Ganadores'});
+                      limpiarSala(socket.room);
+          					}
 
-        					else if(hayGanador === "Sigan Jugando"){
-                    io.sockets["in"](socket.room).emit('Msje_Broadcast', { texto: 'Sigan Jugando'});
-        					}
+          					else if(hayGanador === "Sigan Jugando"){
+                      io.sockets["in"](socket.room).emit('Msje_Broadcast', { texto: 'Sigan Jugando'});
+          					}
 
-        					else if(hayGanador === "Gano Jugador X"){
-                    io.sockets["in"](socket.room).emit('Ganador', 'X');
-                    limpiarSala(socket.room);
-        					}
-        					else if(hayGanador === "Gano Jugador O"){
-                    io.sockets["in"](socket.room).emit('Ganador','O');
-                    limpiarSala(socket.room);
-        					}
-        				} //fin segundo else
-
-
+          					else if(hayGanador === "Gano Jugador X"){
+                      io.sockets["in"](socket.room).emit('Ganador', 'X');
+                      limpiarSala(socket.room);
+          					}
+          					else if(hayGanador === "Gano Jugador O"){
+                      io.sockets["in"](socket.room).emit('Ganador','O');
+                      limpiarSala(socket.room);
+          					}
+          				} //fin segundo else
+                }
         			}//fin primer else
 
     });
