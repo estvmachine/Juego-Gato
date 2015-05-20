@@ -183,14 +183,14 @@ io.on('connection', function(socket){
           socket.emit('Msje_Personal', { emisor: 'SERVER', texto: 'te haz conectado a la '+ socket.room });
           socket.broadcast.to(socket.room).emit('Msje_Broadcast', { texto: username + ' se ha conectado a la '+socket.room } );
 
-          console.log('Jugadores en la '+socket.room + ' antes que ingrese '+socket.username);
-          if( jugadores[socket.room].X === '' ){
+          console.log('Jugadores en la '+socket.room + ' antes que ingrese '+socket.username+ ' '+ JSON.stringify(jugadores[socket.room]));
+          if( participantes[socket.room].length === 0 && participantes[socket.room].indexOf(username)=== -1  ){
             participantes[socket.room].push(username);
             jugadores[socket.room].X= username;
             console.log(socket.username + 'es el jugador X en la '+socket.room);
             socket.emit('designarTipoJugador', {texto: 'Eres el jugador X', tipoJugador: 'X', sala: socket.room, username: username});
           }
-          else if( jugadores[socket.room].O= '' ){
+          else if( participantes[socket.room].length === 1 && participantes[socket.room].indexOf(username)=== -1  ){
             participantes[socket.room].push(username);
             jugadores[socket.room].O= username;
             console.log(socket.username + 'es el jugador O en la '+socket.room);
@@ -231,10 +231,10 @@ io.on('connection', function(socket){
         		        	socket.emit( 'Msje_Personal', { texto: 'Posicion invalida'});
         		        }
 
-        		        /*else if(jugadaAnterior[socket.room]=== jugador){
+        		        else if(jugadaAnterior[socket.room]=== jugador){
 
         		        	socket.emit('Msje_Personal', {texto:'Espera tu turno'});
-        		        }*/
+        		        }
 
         				else{
         		        	//Evaluo jugadaAnterior con la jugada actual
